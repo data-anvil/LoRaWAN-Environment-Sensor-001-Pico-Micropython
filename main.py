@@ -46,6 +46,7 @@ gpsModule = UART(1, baudrate=9600, tx=Pin(4), rx=Pin(5))
 #GPIO_22.value(0)
 
 
+
 #------------Device Variables
 
 # The elapsed time in seconds the program should run before restarting itself
@@ -58,10 +59,10 @@ lora_end_time = start_time + 120
 gps_end_time = start_time + 90
 
 # Temperature offset applied to the measurement received from SCD-30 sensor in Cº (two decimal places)
-temp_offset = 0
+temp_offset = -0.00
 
 # CO2 offset applied to the measurement received from SCD-30 sensor in ppm (whole number only)
-co2_offset = 0
+co2_offset = -0
 
 print('Everything Initialised')
 
@@ -156,8 +157,7 @@ def getGPS(gpsModule):
 
         # Kill the loop if time runs out
         if time.time() > gps_end_time:
-            GPSnull = []
-            return GPSnull
+            break
         wdt.feed()
         sleep_ms(200)
 
@@ -330,6 +330,7 @@ def send_message(message):
     while SENT == False:
         data = receive_uart()
         if 'Done' in data or 'ERROR' in data:
+            print('Payload Sent')
             SENT = True
         if len(data) > 0: print(data)
         if time.time() > lora_end_time:
@@ -345,17 +346,9 @@ def send_message(message):
 print("Attempting Connection...")
 
 # Attempt to make a connection
-while True:
 
-    join_the_things_network()
-
-    if CONNECTED == True:
-        break
-    if time.time() > lora_end_time:
-        print('Giving up on LoRa Connection...')
-        break
-    wdt.feed()   
-
+join_the_things_network()
+ 
 # Send the data payload if connected
 if CONNECTED == True:
     send_message(FinalPayload)
